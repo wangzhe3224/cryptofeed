@@ -174,16 +174,23 @@ class Feed(Exchange):
         if self.cross_check:
             self.check_bid_ask_overlapping(book.book)
 
-        try:
+        if isinstance(book, dict):
+            LOG.info(f">>> receive dict type as book.\n book: {book} \n book_type: {book_type}\n receipt ts: {receipt_timestamp}")
+            for symbol, b in book.items():
+                b.timestamp = timestamp
+                b.raw = raw
+                b.sequence_number = sequence_number
+                b.delta = delta
+                b.checksum = checksum
+                await self.callback(book_type, b, receipt_timestamp)
+
+        else:
             book.timestamp = timestamp
             book.raw = raw
             book.sequence_number = sequence_number
             book.delta = delta
             book.checksum = checksum
             await self.callback(book_type, book, receipt_timestamp)
-        except AttributeError:
-            LOG.error(f">>> Error in book callback: book: {book} \n book_type: {book_type}\n receipt ts: {receipt_timestamp}")
-            print(f">>> Error in book callback: book: {book} \n book_type: {book_type}\n receipt ts: {receipt_timestamp}")
 
     def check_bid_ask_overlapping(self, book):
         bid, ask = book.bids, book.asks
