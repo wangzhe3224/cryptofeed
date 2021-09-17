@@ -238,3 +238,8 @@ class Feed(Exchange):
                     LOG.info('%s: starting backend task %s', self.id, cb_name)
                     # Backends start tasks to write messages
                     callback.start(loop)
+
+        try:
+            loop.create_task(self.report_memory())
+        except Exception:
+            print(f"report memory method is not there, ignore")

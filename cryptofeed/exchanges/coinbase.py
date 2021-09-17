@@ -4,6 +4,8 @@ Copyright (C) 2017-2021  Bryant Moscon - bmoscon@gmail.com
 Please see the LICENSE file for the terms and conditions
 associated with this software.
 '''
+import aiofiles
+import datetime
 import asyncio
 import logging
 import time
@@ -387,3 +389,25 @@ class Coinbase(Feed, CoinbaseRestMixin):
         chan = self.std_channel_to_exchange(L3_BOOK)
         if chan in self.subscription:
             await self._book_snapshot(self.subscription[chan])
+
+    # Remove ME after debug memory leak
+    async def report_memory(self, interval: int=30):
+        import os
+        while True:
+            await asyncio.sleep(interval)
+            res = self.report()
+            print(res)
+            if not os.path.exists('./memory.log'):
+                async with aiofiles.open('./memory.log', mode='w') as fd:
+                    await fd.write(res)
+            else:
+                async with aiofiles.open('./memory.log', mode='a') as fd:
+                    await fd.write(res)
+
+    def report(self):
+        res = f"\n{datetime.datetime.utcnow()}: "
+        res += (
+            f"keys in order map: {len(self.order_map)}.  "
+            f"keys in order type map: {len(self.order_type_map)}"
+        )
+        return res
