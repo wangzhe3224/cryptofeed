@@ -9,7 +9,7 @@ import os
 import yaml
 
 
-_default_config = {'uvloop': True, 'log': {'filename': 'feedhandler.log', 'level': 'WARNING'}}
+_default_config = {'uvloop': False, 'log': {'filename': 'feedhandler.log', 'level': 'WARNING'}}
 
 
 class AttrDict(dict):
