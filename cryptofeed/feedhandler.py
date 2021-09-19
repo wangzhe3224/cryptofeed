@@ -72,6 +72,7 @@ class FeedHandler:
                 import uvloop
                 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
                 LOG.info('FH: uvloop initalized')
+                raise ValueError('?????')
             except ImportError:
                 LOG.info("FH: uvloop not initialized")
 
