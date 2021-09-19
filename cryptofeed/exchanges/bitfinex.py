@@ -282,6 +282,7 @@ class Bitfinex(Feed, BitfinexRestMixin):
             price = Decimal(price)
             amount = Decimal(amount)
 
+            # assume amount != 0
             if amount > 0:
                 side = BID
             else:
@@ -295,11 +296,30 @@ class Bitfinex(Feed, BitfinexRestMixin):
                 delta[side].append((order_id, price, 0))
             else:
                 if order_id in self.order_map[pair][side]:
+                    print(f"")
+                    print(f"valid update: {msg}")
+                    print(f"Order map: {self.order_map[pair][side].get(order_id, None)}")
+                    print(f"order id {order_id}")
+                    old_price = self.order_map[pair][side].get(order_id)['price']
+                    print(f"Old price {old_price} vs {price} new price")
+                    print(f"Order book at old price: {self._l3_book[pair].book[side][old_price]}")
+                    try:
+                        print(f"Order book at new price: {self._l3_book[pair].book[side][price]}")
+                    except:
+                        print(f"new price does not be in order")
+
+                    # same order can either change price or not change price
                     del_price = self.order_map[pair][side][order_id]['price']
-                    delta[side].append((order_id, del_price, 0))
-                    # remove existing order before adding new one
-                    delta[side].append((order_id, price, amount))
-                    remove_from_book(side, order_id)
+                    if del_price in self._l3_book[pair].book[side] and del_price == price:
+                        # not change price, just amount
+                        print(f">> new price {price} == old price {del_price}")
+                        delta[side].append((order_id, price, amount))
+                    else:
+                        # price changed
+                        delta[side].append((order_id, del_price, 0))
+                        # remove existing order before adding new one
+                        delta[side].append((order_id, price, amount))
+                        remove_from_book(side, order_id)
                 else:
                     delta[side].append((order_id, price, amount))
                 add_to_book(side, price, order_id, amount)
